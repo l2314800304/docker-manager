@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  docker-manager:
+    build: .
+    container_name: docker-manager
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - docker-manager-data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - DOCKER_CONNECTION_TYPE=socket
+      - DOCKER_CONNECTION_SOCKET_PATH=unix:///var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  docker-manager-data:

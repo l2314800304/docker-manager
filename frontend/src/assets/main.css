@@ -1,0 +1,197 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d0d3d9;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8abb2;
+}
+
+/* Code */
+code {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  background: #f5f7fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* === Element Plus Global Overrides === */
+
+/* Cards */
+.el-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.3s ease;
+}
+
+.el-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Tables */
+.el-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.el-table th.el-table__cell {
+  background: #f7f8fa !important;
+  color: #4e5969;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.el-table td.el-table__cell {
+  color: #303133;
+}
+
+/* Buttons */
+.el-button--primary {
+  background: linear-gradient(135deg, #409EFF, #337ecc);
+  border: none;
+}
+
+.el-button--primary:hover {
+  background: linear-gradient(135deg, #66b1ff, #409EFF);
+}
+
+.el-button--success {
+  background: linear-gradient(135deg, #67C23A, #529b2e);
+  border: none;
+}
+
+.el-button--danger {
+  background: linear-gradient(135deg, #F56C6C, #c45656);
+  border: none;
+}
+
+.el-button--warning {
+  background: linear-gradient(135deg, #E6A23C, #b88230);
+  border: none;
+}
+
+/* Tags */
+.el-tag {
+  border-radius: 6px;
+}
+
+/* Dialogs */
+.el-dialog {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.el-dialog__header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-right: 0;
+}
+
+.el-dialog__body {
+  padding: 20px;
+}
+
+.el-dialog__footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Descriptions */
+.el-descriptions__label {
+  font-weight: 600 !important;
+  color: #4e5969 !important;
+  background: #f7f8fa !important;
+}
+
+/* Tabs */
+.el-tabs__item.is-active {
+  font-weight: 600;
+}
+
+/* Progress */
+.el-progress-bar__outer {
+  border-radius: 4px !important;
+}
+
+.el-progress-bar__inner {
+  border-radius: 4px !important;
+}
+
+/* Page transitions */
+.page-slide-enter-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-slide-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-slide-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.page-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Selection */
+::selection {
+  background: rgba(64, 158, 255, 0.2);
+  color: inherit;
+}
+
+/* Focus outlines */
+*:focus-visible {
+  outline: 2px solid rgba(64, 158, 255, 0.4);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Breadcrumb */
+.el-breadcrumb__inner {
+  font-weight: 500 !important;
+}
+
+/* Message box override */
+.el-message-box {
+  border-radius: 14px;
+}
+
+/* Tooltip */
+.el-tooltip__trigger:focus-visible {
+  outline: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .el-col {
+    max-width: 100%;
+  }
+}

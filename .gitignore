@@ -1,0 +1,37 @@
+# ===== Java =====
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# ===== IDE =====
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+
+# ===== Frontend =====
+frontend/node_modules/
+frontend/dist/
+src/main/resources/static/
+
+# ===== Database =====
+data/
+*.db
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Build artifacts =====
+*.bak
+*.tmp

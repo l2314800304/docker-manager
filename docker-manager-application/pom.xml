@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.dockermanager</groupId>
+        <artifactId>docker-manager</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>docker-manager-application</artifactId>
+    <name>Docker Manager :: Application</name>
+    <description>应用层 - 用例编排、出站端口(Port)接口定义、应用服务</description>
+
+    <!--
+        应用层负责编排业务流程，不包含核心业务逻辑（逻辑在 Domain 层）。
+        包含：
+        - 应用服务 (Application Service): 编排领域对象和基础设施完成用例
+        - 出站端口 (Outbound Port): 定义基础设施需要实现的接口
+          Infrastructure 层提供这些接口的具体实现（依赖倒置原则）
+
+        依赖方向：Application → Domain（仅依赖领域模型）
+        Infrastructure → Application（实现出站端口）
+    -->
+
+    <dependencies>
+        <!-- 依赖领域层 -->
+        <dependency>
+            <groupId>com.dockermanager</groupId>
+            <artifactId>docker-manager-domain</artifactId>
+        </dependency>
+
+        <!-- Spring Context: 仅用于 @Service/@Component 注解（无 Web/JPA/Security） -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+    </dependencies>
+</project>

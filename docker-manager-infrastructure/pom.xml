@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.dockermanager</groupId>
+        <artifactId>docker-manager</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>docker-manager-infrastructure</artifactId>
+    <name>Docker Manager :: Infrastructure</name>
+    <description>基础设施层 - 适配器实现（Docker/JPA/REST/WebSocket/Security）</description>
+
+    <!--
+        基础设施层是六边形架构的"适配器"（Adapter）层，
+        实现应用层定义的出站端口(Port)接口。
+        包含：
+        - Docker 适配器: DockerClient, ComposeProject, LogStreamer, StatsCollector 等
+        - 持久化适配器: JPA Entity, Repository, Mapper
+        - Web 适配器: REST Controller, WebSocket Handler
+        - 安全适配器: JWT, Spring Security Filter, Password Encoder
+        - 配置类: Docker 连接、WebSocket、资源清理
+
+        依赖方向：Infrastructure → Application（实现 Port 接口）
+                                → Domain（使用领域模型）
+    -->
+
+    <dependencies>
+        <!-- 内部依赖 -->
+        <dependency>
+            <groupId>com.dockermanager</groupId>
+            <artifactId>docker-manager-domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.dockermanager</groupId>
+            <artifactId>docker-manager-application</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starters -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Docker Java Client -->
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-transport-httpclient5</artifactId>
+        </dependency>
+
+        <!-- Apache Commons Compress (tar 归档解压，用于文件系统访问降级方案) -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+        </dependency>
+
+        <!-- Jackson JSON 序列化 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <!-- JWT (jjwt) -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+</project>

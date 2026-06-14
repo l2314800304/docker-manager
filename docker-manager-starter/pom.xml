@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.dockermanager</groupId>
+        <artifactId>docker-manager</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>docker-manager-starter</artifactId>
+    <name>Docker Manager :: Starter</name>
+    <description>启动层 - Spring Boot 应用入口 + 全局配置 + 前端静态资源（最终打成一个可执行 JAR）</description>
+
+    <!--
+        启动层是六边形架构的最外层，负责：
+        1. Spring Boot 应用入口（@SpringBootApplication）
+        2. 全局配置（application.yml、Web MVC、安全策略）
+        3. 前端构建集成（npm build → 拷贝到 static/）
+        4. 最终打包为可执行的 Fat JAR（包含所有层）
+
+        依赖方向：Starter → Infrastructure（间接依赖 Application + Domain）
+    -->
+
+    <dependencies>
+        <!-- 依赖基础设施层（传递依赖 Application + Domain） -->
+        <dependency>
+            <groupId>com.dockermanager</groupId>
+            <artifactId>docker-manager-infrastructure</artifactId>
+        </dependency>
+
+        <!-- H2 数据库（运行时依赖） -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 测试依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 前端构建集成：npm ci + npm run build-only → 拷贝到 static/ -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>frontend-install</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments><argument>ci</argument></arguments>
+                            <workingDirectory>${project.basedir}/../frontend</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>frontend-build</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>run</argument>
+                                <argument>build-only</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}/../frontend</workingDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 将前端构建产物拷贝到 JAR 的 static/ 目录 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-frontend</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>copy-resources</goal></goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../frontend/dist</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Spring Boot Maven Plugin：打包为可执行 Fat JAR -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

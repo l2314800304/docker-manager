@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.dockermanager</groupId>
+        <artifactId>docker-manager</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>docker-manager-domain</artifactId>
+    <name>Docker Manager :: Domain</name>
+    <description>领域层 - 核心业务模型、实体、值对象、领域服务、端口接口（零框架依赖）</description>
+
+    <!--
+        领域层是六边形架构的核心，不依赖任何框架和其他模块。
+        包含：
+        - 领域实体 (Entity): User, AuditLog, StatusRecord
+        - 值对象 (Value Object): ContainerState, AuditAction
+        - 数据传输对象 (DTO): ContainerInfoDTO, ComposeProjectDTO 等
+        - 入站端口 (Inbound Port / Use Case Interface): 供外部驱动层调用
+        - 领域服务: 纯业务逻辑，不涉及基础设施
+    -->
+
+    <dependencies>
+        <!-- 领域层仅依赖 Lombok（编译时注解处理器，不产生运行时依赖） -->
+        <!-- Jackson 注解用于 DTO 序列化，属于领域模型的一部分 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+
+        <!-- JPA 实体注解（@Entity, @Id, @Column 等），仅用于编译，运行时由 Hibernate 提供 -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

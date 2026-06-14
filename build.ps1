@@ -1,4 +1,4 @@
-# Build script for docker-manager (Windows PowerShell)
+# Docker Manager 构建脚本 - Windows PowerShell (DDD 多模块)
 # Usage: .\build.ps1 [-SkipFrontend] [-SkipTests]
 
 param(
@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "=== Docker Manager Build ===" -ForegroundColor Cyan
+Write-Host "=== Docker Manager Build (DDD Multi-Module) ===" -ForegroundColor Cyan
 
 # Step 1: Build frontend
 if (-not $SkipFrontend) {
@@ -17,9 +17,8 @@ if (-not $SkipFrontend) {
     npm ci
     npm run build-only
 
-    # Copy dist to Spring Boot static resources
-    Write-Host ">>> Copying frontend dist to src/main/resources/static/..." -ForegroundColor Yellow
-    $staticDir = "..\src\main\resources\static"
+    Write-Host ">>> Copying frontend dist to docker-manager-starter/src/main/resources/static/..." -ForegroundColor Yellow
+    $staticDir = "..\docker-manager-starter\src\main\resources\static"
     if (Test-Path $staticDir) {
         Remove-Item -Recurse -Force $staticDir
     }
@@ -30,8 +29,8 @@ if (-not $SkipFrontend) {
     Write-Host ">>> Skipping frontend build." -ForegroundColor Gray
 }
 
-# Step 2: Build backend with Maven
-Write-Host "`n>>> Building backend with Maven..." -ForegroundColor Yellow
+# Step 2: Build all Maven modules
+Write-Host "`n>>> Building Maven modules..." -ForegroundColor Yellow
 $mavenArgs = @("clean", "package", "-B")
 if ($SkipTests) {
     $mavenArgs += "-DskipTests"
@@ -39,5 +38,5 @@ if ($SkipTests) {
 mvn @mavenArgs
 
 Write-Host "`n=== Build successful! ===" -ForegroundColor Green
-Write-Host "JAR file: target/docker-manager-1.0.0-SNAPSHOT.jar" -ForegroundColor White
-Write-Host "`nRun with: java -jar target/docker-manager-1.0.0-SNAPSHOT.jar" -ForegroundColor White
+Write-Host "JAR file: docker-manager-starter/target/docker-manager-starter-1.0.0-SNAPSHOT.jar" -ForegroundColor White
+Write-Host "`nRun with: java -jar docker-manager-starter/target/docker-manager-starter-1.0.0-SNAPSHOT.jar" -ForegroundColor White

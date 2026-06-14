@@ -6,16 +6,28 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build-only
 
-# ===== Build Backend (with frontend bundled) =====
+# ===== Build Backend (multi-module Maven project) =====
 FROM maven:3.9-eclipse-temurin-17-alpine AS backend-build
 WORKDIR /app
+
+# Copy parent POM and all module POMs first (for dependency caching)
 COPY pom.xml ./
-RUN mvn dependency:go-offline -B
-COPY src/ ./src/
+COPY docker-manager-domain/pom.xml ./docker-manager-domain/
+COPY docker-manager-application/pom.xml ./docker-manager-application/
+COPY docker-manager-infrastructure/pom.xml ./docker-manager-infrastructure/
+COPY docker-manager-starter/pom.xml ./docker-manager-starter/
+RUN mvn dependency:go-offline -B 2>/dev/null || true
 
-# Copy frontend build output into Spring Boot static resources
-COPY --from=frontend-build /app/frontend/dist/ ./src/main/resources/static/
+# Copy all source code
+COPY docker-manager-domain/src/ ./docker-manager-domain/src/
+COPY docker-manager-application/src/ ./docker-manager-application/src/
+COPY docker-manager-infrastructure/src/ ./docker-manager-infrastructure/src/
+COPY docker-manager-starter/src/ ./docker-manager-starter/src/
 
+# Copy frontend dist to starter module's static resources
+COPY --from=frontend-build /app/frontend/dist/ ./docker-manager-starter/src/main/resources/static/
+
+# Build all modules
 RUN mvn package -DskipTests -B
 
 # ===== Runtime =====
@@ -25,7 +37,8 @@ WORKDIR /app
 # Install docker CLI for compose operations
 RUN apk add --no-cache docker-cli docker-cli-compose
 
-COPY --from=backend-build /app/target/*.jar app.jar
+# Copy the starter module's fat JAR
+COPY --from=backend-build /app/docker-manager-starter/target/*.jar app.jar
 
 EXPOSE 8080
 

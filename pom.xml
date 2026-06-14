@@ -14,164 +14,125 @@
     <groupId>com.dockermanager</groupId>
     <artifactId>docker-manager</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>docker-manager</name>
-    <description>Docker Compose Monitoring System</description>
+    <packaging>pom</packaging>
+    <name>Docker Manager :: Parent</name>
+    <description>Docker Compose 运行监控系统 - DDD + 六边形架构</description>
+
+    <!--
+        架构分层说明（六边形架构 / Ports & Adapters）：
+        ┌─────────────────────────────────────────────────────┐
+        │  starter (启动层)                                    │
+        │  Spring Boot 入口 + 配置 + 前端静态资源               │
+        │  依赖: infrastructure                                │
+        ├─────────────────────────────────────────────────────┤
+        │  infrastructure (基础设施层 / Adapters)               │
+        │  Docker适配器 + JPA持久化 + REST控制器 + WebSocket    │
+        │  依赖: application, spring-boot, docker-java, jjwt   │
+        ├─────────────────────────────────────────────────────┤
+        │  application (应用层 / Use Cases)                     │
+        │  应用服务编排 + 出站端口(Port)接口定义                 │
+        │  依赖: domain                                        │
+        ├─────────────────────────────────────────────────────┤
+        │  domain (领域层 / Core)                               │
+        │  实体 + 值对象 + 领域服务 + 入站端口 + DTO             │
+        │  依赖: 无 (纯 Java, 零框架依赖)                       │
+        └─────────────────────────────────────────────────────┘
+    -->
+
+    <modules>
+        <module>docker-manager-domain</module>
+        <module>docker-manager-application</module>
+        <module>docker-manager-infrastructure</module>
+        <module>docker-manager-starter</module>
+    </modules>
 
     <properties>
         <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <docker-java.version>3.4.1</docker-java.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <commons-compress.version>1.27.1</commons-compress.version>
     </properties>
 
+    <!-- 依赖版本管理（子模块按需引用，不在此处直接引入） -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- 内部模块 -->
+            <dependency>
+                <groupId>com.dockermanager</groupId>
+                <artifactId>docker-manager-domain</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dockermanager</groupId>
+                <artifactId>docker-manager-application</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dockermanager</groupId>
+                <artifactId>docker-manager-infrastructure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- 第三方库版本锁定 -->
+            <dependency>
+                <groupId>com.github.docker-java</groupId>
+                <artifactId>docker-java-core</artifactId>
+                <version>${docker-java.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.docker-java</groupId>
+                <artifactId>docker-java-transport-httpclient5</artifactId>
+                <version>${docker-java.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- 所有子模块共享的依赖 -->
     <dependencies>
-        <!-- Spring Boot -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-        <!-- H2 Database -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- Docker Java Client -->
-        <dependency>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java-core</artifactId>
-            <version>${docker-java.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java-transport-httpclient5</artifactId>
-            <version>${docker-java.version}</version>
-        </dependency>
-
-        <!-- Apache Commons Compress (for tar) -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>1.27.1</version>
-        </dependency>
-
-        <!-- Jackson -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-
-        <!-- JWT -->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>${jjwt.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>${jjwt.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>${jjwt.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <!-- Test -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
-        <plugins>
-            <!-- Build frontend and copy to static resources -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>frontend-install</id>
-                        <phase>generate-resources</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <executable>npm</executable>
-                            <arguments><argument>ci</argument></arguments>
-                            <workingDirectory>${project.basedir}/frontend</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>frontend-build</id>
-                        <phase>generate-resources</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <executable>npm</executable>
-                            <arguments>
-                                <argument>run</argument>
-                                <argument>build-only</argument>
-                            </arguments>
-                            <workingDirectory>${project.basedir}/frontend</workingDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-frontend</id>
-                        <phase>generate-resources</phase>
-                        <goals><goal>copy-resources</goal></goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/frontend/dist</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

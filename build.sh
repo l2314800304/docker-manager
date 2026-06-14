@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build script for docker-manager
+# Docker Manager 构建脚本 (DDD 多模块)
 # Usage: ./build.sh [--skip-frontend] [--skip-tests]
 
 set -e
@@ -15,7 +15,7 @@ for arg in "$@"; do
   esac
 done
 
-echo "=== Docker Manager Build ==="
+echo "=== Docker Manager Build (DDD Multi-Module) ==="
 
 # Step 1: Build frontend
 if [ "$SKIP_FRONTEND" = false ]; then
@@ -25,23 +25,22 @@ if [ "$SKIP_FRONTEND" = false ]; then
   npm ci
   npm run build-only
 
-  # Copy dist to Spring Boot static resources
-  echo ">>> Copying frontend dist to src/main/resources/static/..."
-  rm -rf ../src/main/resources/static
-  cp -r dist/ ../src/main/resources/static/
+  echo ">>> Copying frontend dist to docker-manager-starter/src/main/resources/static/..."
+  rm -rf ../docker-manager-starter/src/main/resources/static
+  cp -r dist/ ../docker-manager-starter/src/main/resources/static/
   cd ..
   echo ">>> Frontend build complete."
 else
   echo ">>> Skipping frontend build."
 fi
 
-# Step 2: Build backend with Maven
+# Step 2: Build all Maven modules
 echo ""
-echo ">>> Building backend with Maven..."
+echo ">>> Building Maven modules..."
 mvn clean package $MAVEN_ARGS -B
 
 echo ""
 echo "=== Build successful! ==="
-echo "JAR file: target/docker-manager-1.0.0-SNAPSHOT.jar"
+echo "JAR file: docker-manager-starter/target/docker-manager-starter-1.0.0-SNAPSHOT.jar"
 echo ""
-echo "Run with: java -jar target/docker-manager-1.0.0-SNAPSHOT.jar"
+echo "Run with: java -jar docker-manager-starter/target/docker-manager-starter-1.0.0-SNAPSHOT.jar"

@@ -91,10 +91,16 @@ Starter → Infrastructure → Application → Domain
 |------|------|------|------|
 | **入站端口** | `domain.port.inbound` | `DockerOperationPort` | 容器/项目/Stats/文件系统/镜像/健康检查 |
 | | | `AuthenticationPort` | 登录/注册/用户管理 |
+| | | `HostOperationPort` | 宿主机管理/指标采集/连接测试 |
+| | | `AlertManagementPort` | 告警规则/告警记录/通知测试 |
 | **出站端口** | `application.port.outbound` | `DockerAdapterPort` | Docker API 操作契约 |
 | | | `UserRepositoryPort` | 用户持久化契约 |
 | | | `AuditRepositoryPort` | 审计日志持久化契约 |
 | | | `StatusRecordRepositoryPort` | 状态记录持久化契约 |
+| | | `HostRepositoryPort` | 宿主机持久化契约 |
+| | | `AlertRepositoryPort` | 告警规则/记录持久化契约 |
+| | | `HostMetricsPort` | 宿主机指标采集契约 |
+| | | `NotificationPort` | 告警通知发送契约（钉钉等） |
 | | | `JwtPort` | JWT 令牌生成/验证契约 |
 | | | `PasswordEncoderPort` | 密码编码契约 |
 
@@ -105,12 +111,17 @@ Starter → Infrastructure → Application → Domain
 | 功能模块 | 说明 |
 |---------|------|
 | **Dashboard 总览** | 统计卡片（动画数字）、项目列表（健康度进度条）、资源使用概览、操作日志 |
+| **多宿主机支持** | 同时对接多个 Docker 宿主机，每台独立 DockerClient，支持动态添加/删除/启用/禁用 |
+| **宿主机监控** | CPU 使用率、内存占用、磁盘占用、容器统计、Docker 版本等实时指标采集 |
+| **磁盘分区监控** | 采集宿主机所有物理分区的存储空间占用率（设备名、挂载点、总量/已用/可用），通过 df 命令精确采集 |
 | **Compose 项目发现** | 自动扫描宿主机所有 docker-compose 项目，按 label 分组聚合 |
 | **容器管理** | 启动/停止/重启容器，查看详细信息（镜像、端口、Digests） |
 | **实时日志** | WebSocket 推送容器日志流，支持搜索过滤、自动滚动、stderr/stdout 区分 |
 | **资源监控** | 实时 CPU/内存/网络/磁盘 IO 统计，60 秒历史趋势柱状图 |
 | **文件系统浏览** | 浏览容器内文件目录，查看文件内容，支持目录导航 |
 | **镜像更新** | 选择新 tag → Docker Hub 查询 → 拉取镜像 → 重启服务，支持失败回滚 |
+| **钉钉告警** | 自定义告警规则（CPU/内存/磁盘阈值），定时检查，WebHook 推送，支持加签验证 |
+| **告警管理** | 规则 CRUD、冷却期防重复、告警历史记录、通知测试 |
 | **用户认证** | JWT 无状态认证，登录/注册/修改密码，Token 自动续期 |
 | **用户管理** | 管理员可查看/禁用/删除用户，重置密码 |
 | **审计日志** | 记录所有容器操作（重启/停止/启动/更新）的审计历史 |
@@ -386,6 +397,46 @@ jwt:
   expiration: 86400000                             # Token 有效期（毫秒，默认 24 小时）
 ```
 
+### 告警配置
+
+```yaml
+alert:
+  check-interval: 60000    # 告警检查间隔（毫秒），默认 60 秒
+  enabled: true            # 是否启用告警检查
+```
+
+**告警规则支持的指标类型：**
+
+| 指标类型 | 说明 | 单位 |
+|---------|------|------|
+| `HOST_CPU` | 宿主机 CPU 使用率 | % |
+| `HOST_MEMORY` | 宿主机内存使用率 | % |
+| `HOST_DISK` | 宿主机磁盘使用率 | % |
+| `CONTAINER_CPU` | 容器 CPU 使用率 | % |
+| `CONTAINER_MEMORY` | 容器内存使用率 | % |
+| `CONTAINER_STOPPED` | 容器停止运行 | - |
+
+**钉钉 WebHook 配置：**
+
+1. 在钉钉群中添加自定义机器人，获取 WebHook URL
+2. 安全设置选择「加签」，复制密钥
+3. 通过 API 创建告警规则：
+
+```json
+POST /api/alerts/rules
+{
+  "name": "CPU使用率过高",
+  "hostId": 1,
+  "metricType": "HOST_CPU",
+  "threshold": 80,
+  "compareOperator": "GT",
+  "notifyType": "DINGTALK",
+  "notifyTarget": "https://oapi.dingtalk.com/robot/send?access_token=xxx",
+  "dingtalkSecret": "SECxxx",
+  "cooldownSeconds": 300
+}
+```
+
 ---
 
 ## API 文档
@@ -452,6 +503,31 @@ jwt:
 | GET | `/api/images/{name}/tags` | 查询可用 Tag（Docker Hub API） |
 | POST | `/api/projects/{p}/services/{s}/update` | 更新镜像版本（异步） |
 | GET | `/api/tasks/{taskId}/status` | 查询更新任务状态 |
+
+### 宿主机管理
+
+| 方法 | 路径 | 说明 |
+|-----|------|------|
+| GET | `/api/hosts` | 所有宿主机列表 |
+| GET | `/api/hosts/{id}` | 宿主机详情 |
+| POST | `/api/hosts` | 添加宿主机 |
+| PUT | `/api/hosts/{id}` | 更新宿主机 |
+| DELETE | `/api/hosts/{id}` | 删除宿主机 |
+| POST | `/api/hosts/{id}/test` | 测试连接 |
+| GET | `/api/hosts/{id}/metrics` | 宿主机资源指标 |
+| GET | `/api/hosts/metrics` | 所有宿主机指标汇总 |
+
+### 告警管理
+
+| 方法 | 路径 | 说明 |
+|-----|------|------|
+| GET | `/api/alerts/rules` | 所有告警规则 |
+| POST | `/api/alerts/rules` | 添加告警规则 |
+| PUT | `/api/alerts/rules/{id}` | 更新告警规则 |
+| DELETE | `/api/alerts/rules/{id}` | 删除告警规则 |
+| GET | `/api/alerts/records?limit=50` | 告警记录 |
+| GET | `/api/alerts/records/rule/{ruleId}` | 按规则查询告警记录 |
+| POST | `/api/alerts/test-notification` | 测试钉钉通知 |
 
 ### 系统与审计
 

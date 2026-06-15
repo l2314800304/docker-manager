@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { getProjects, getAllStats, getAuditLogs } from '@/api'
+import { getProjects, getAllStats, getAuditLogs, getAllHostMetrics } from '@/api'
 
 const router = useRouter()
 const projects = ref<any[]>([])
@@ -22,6 +22,7 @@ const totalContainers = ref(0)
 const runningContainers = ref(0)
 const stoppedContainers = ref(0)
 const auditLogs = ref<any[]>([])
+const hostMetrics = ref<any[]>([])
 
 const animateNumber = (target: number, current: { value: number }, duration = 600) => {
   const start = current.value
@@ -84,9 +85,16 @@ const getHealthPercent = (project: any) => {
 const formatBytes = (bytes: number) => {
   if (!bytes) return '0 B'
   const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+}
+
+/** 获取磁盘使用率的颜色：>90%红色、>70%橙色、其他绿色 */
+const getDiskColor = (percent: number) => {
+  if (percent > 90) return '#F56C6C'
+  if (percent > 70) return '#E6A23C'
+  return '#67C23A'
 }
 
 const fetchAuditLogs = async () => {
@@ -95,6 +103,16 @@ const fetchAuditLogs = async () => {
     auditLogs.value = res.data || []
   } catch {
     auditLogs.value = []
+  }
+}
+
+/** 获取所有宿主机的资源指标（含磁盘分区信息） */
+const fetchHostMetrics = async () => {
+  try {
+    const res = await getAllHostMetrics()
+    hostMetrics.value = res.data || []
+  } catch {
+    hostMetrics.value = []
   }
 }
 
@@ -114,7 +132,11 @@ const formatTime = (t: string) => {
 onMounted(() => {
   fetchProjects()
   fetchAuditLogs()
-  refreshTimer = setInterval(fetchProjects, 30000)
+  fetchHostMetrics()
+  refreshTimer = setInterval(() => {
+    fetchProjects()
+    fetchHostMetrics()
+  }, 30000)
   countdownTimer = setInterval(() => {
     if (countdown.value > 0) countdown.value--
   }, 1000)
@@ -298,6 +320,56 @@ onUnmounted(() => {
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- Disk Partition Usage (宿主机磁盘分区占用) -->
+    <el-card class="section-card disk-card" v-if="hostMetrics.some((m: any) => m.partitions && m.partitions.length > 0)">
+      <template #header>
+        <div class="section-header">
+          <div class="section-title-area">
+            <el-icon :size="18" color="#E6A23C"><Coin /></el-icon>
+            <span class="section-title">磁盘分区占用</span>
+          </div>
+          <el-button text size="small" @click="fetchHostMetrics">
+            <el-icon><Refresh /></el-icon> 刷新
+          </el-button>
+        </div>
+      </template>
+
+      <div v-for="(host, hIdx) in hostMetrics" :key="hIdx" class="host-disk-section">
+        <!-- 宿主机名称 -->
+        <div class="host-disk-header" v-if="hostMetrics.length > 1">
+          <el-icon :size="14"><Monitor /></el-icon>
+          <span class="host-disk-name">{{ host.hostName }}</span>
+        </div>
+
+        <!-- 分区列表 -->
+        <div class="partition-grid">
+          <div v-for="(part, pIdx) in (host.partitions || [])" :key="pIdx" class="partition-item">
+            <div class="partition-header">
+              <span class="partition-mount">{{ part.mountPoint }}</span>
+              <span class="partition-percent" :style="{ color: getDiskColor(part.usePercent) }">
+                {{ part.usePercent.toFixed(1) }}%
+              </span>
+            </div>
+            <el-progress
+              :percentage="Math.min(part.usePercent, 100)"
+              :stroke-width="10"
+              :show-text="false"
+              :color="getDiskColor(part.usePercent)"
+            />
+            <div class="partition-detail">
+              <span class="partition-fs">{{ part.filesystem }}</span>
+              <span class="partition-size">
+                {{ formatBytes(part.usedBytes) }} / {{ formatBytes(part.totalBytes) }}
+              </span>
+            </div>
+            <div class="partition-available">
+              可用 {{ formatBytes(part.availableBytes) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </el-card>
 
     <!-- Audit Logs -->
     <el-card class="section-card audit-card" v-if="auditLogs.length > 0">
@@ -664,5 +736,96 @@ onUnmounted(() => {
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   color: #86909c;
+}
+
+/* ==================== 磁盘分区占用 ==================== */
+.disk-card {
+  margin-top: 20px;
+}
+
+.host-disk-section {
+  margin-bottom: 16px;
+}
+
+.host-disk-section:last-child {
+  margin-bottom: 0;
+}
+
+.host-disk-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.host-disk-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #303133;
+}
+
+/* 分区网格布局：每行显示多个分区卡片 */
+.partition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+/* 单个分区卡片 */
+.partition-item {
+  background: #f7f8fa;
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: all 0.2s ease;
+}
+
+.partition-item:hover {
+  background: #eef0f3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.partition-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.partition-mount {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1d2129;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.partition-percent {
+  font-weight: 800;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.partition-detail {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.partition-fs {
+  color: #86909c;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.partition-size {
+  color: #606266;
+  font-variant-numeric: tabular-nums;
+}
+
+.partition-available {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #a0a4ab;
 }
 </style>

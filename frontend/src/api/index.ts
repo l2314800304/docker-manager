@@ -158,6 +158,43 @@ export const getTaskStatus = (taskId: string) => api.get(`/tasks/${taskId}/statu
 /** 获取系统和 Docker 连接状态 */
 export const getHealth = () => api.get('/health')
 
+// ==================== Hosts 宿主机 API ====================
+
+/** 获取所有宿主机列表 */
+export const getHosts = () => api.get('/hosts')
+/** 获取宿主机详情 */
+export const getHost = (id: number) => api.get(`/hosts/${id}`)
+/** 添加宿主机 */
+export const addHost = (data: any) => api.post('/hosts', data)
+/** 更新宿主机 */
+export const updateHost = (id: number, data: any) => api.put(`/hosts/${id}`, data)
+/** 删除宿主机 */
+export const deleteHost = (id: number) => api.delete(`/hosts/${id}`)
+/** 测试宿主机连接 */
+export const testHostConnection = (id: number) => api.post(`/hosts/${id}/test`)
+/** 获取宿主机资源指标（含磁盘分区详情） */
+export const getHostMetrics = (id: number) => api.get(`/hosts/${id}/metrics`)
+/** 获取所有宿主机资源指标汇总 */
+export const getAllHostMetrics = () => api.get('/hosts/metrics')
+
+// ==================== Alerts 告警 API ====================
+
+/** 获取所有告警规则 */
+export const getAlertRules = () => api.get('/alerts/rules')
+/** 添加告警规则 */
+export const addAlertRule = (data: any) => api.post('/alerts/rules', data)
+/** 更新告警规则 */
+export const updateAlertRule = (id: number, data: any) => api.put(`/alerts/rules/${id}`, data)
+/** 删除告警规则 */
+export const deleteAlertRule = (id: number) => api.delete(`/alerts/rules/${id}`)
+/** 获取告警记录列表 */
+export const getAlertRecords = (limit = 50) => api.get('/alerts/records', { params: { limit } })
+/** 按规则查询告警记录 */
+export const getAlertRecordsByRule = (ruleId: number, limit = 50) =>
+  api.get(`/alerts/records/rule/${ruleId}`, { params: { limit } })
+/** 测试钉钉通知 */
+export const testNotification = (data: any) => api.post('/alerts/test-notification', data)
+
 // ==================== Audit 审计日志 API ====================
 
 /** 获取操作审计日志列表 */

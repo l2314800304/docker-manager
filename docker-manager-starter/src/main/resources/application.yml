@@ -28,6 +28,7 @@ spring:
       write-dates-as-timestamps: false
     default-property-inclusion: non_null
 
+# Docker 连接配置（默认宿主机，启动时自动注册到数据库）
 docker:
   connection:
     type: socket
@@ -35,6 +36,15 @@ docker:
     tcp-host: tcp://localhost:2375
     tls-enabled: false
     cert-path:
+  # 默认宿主机名称
+  default-host-name: 本地Docker
+
+# 告警检查配置
+alert:
+  # 检查间隔（毫秒），默认 60 秒
+  check-interval: 60000
+  # 启用告警检查
+  enabled: true
 
 jwt:
   secret: docker-manager-secret-key-that-is-at-least-256-bits-long-for-hs256

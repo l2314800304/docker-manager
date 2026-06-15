@@ -71,6 +71,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/hosts',
+      name: 'hosts',
+      component: () => import('@/views/HostManagementView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/alerts',
+      name: 'alerts',
+      component: () => import('@/views/AlertManagementView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/users',
       name: 'users',
       component: () => import('@/views/UserManagementView.vue'),

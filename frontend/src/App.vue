@@ -45,6 +45,8 @@ const activeMenu = computed(() => {
   const path = route.path
   if (path.startsWith('/projects')) return '/projects'
   if (path.startsWith('/containers')) return '/containers'
+  if (path.startsWith('/hosts')) return '/hosts'
+  if (path.startsWith('/alerts')) return '/alerts'
   if (path.startsWith('/users')) return '/users'
   return path
 })
@@ -59,6 +61,10 @@ const breadcrumbItems = computed(() => {
     items.push({ title: route.params.name as string })
   } else if (name === 'container-detail') {
     items.push({ title: '容器详情' })
+  } else if (name === 'hosts') {
+    items.push({ title: '宿主机管理' })
+  } else if (name === 'alerts') {
+    items.push({ title: '告警管理' })
   } else if (name === 'users') {
     items.push({ title: '用户管理' })
   }
@@ -194,6 +200,14 @@ onMounted(() => {
         <el-menu-item index="/projects">
           <el-icon><Folder /></el-icon>
           <template #title>Compose 项目</template>
+        </el-menu-item>
+        <el-menu-item index="/hosts">
+          <el-icon><Monitor /></el-icon>
+          <template #title>宿主机管理</template>
+        </el-menu-item>
+        <el-menu-item index="/alerts">
+          <el-icon><Bell /></el-icon>
+          <template #title>告警管理</template>
         </el-menu-item>
         <el-menu-item v-if="auth.isAdmin" index="/users">
           <el-icon><UserFilled /></el-icon>

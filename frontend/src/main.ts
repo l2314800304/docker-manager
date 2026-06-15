@@ -18,9 +18,9 @@ import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
-// 按需导入使用到的 Element Plus 图标（29 个，而非全量注册 ~280 个）
+// 按需导入使用到的 Element Plus 图标（30 个，而非全量注册 ~280 个）
 import {
-  ArrowDown, ArrowLeft, Aim, Box, CircleCheck, CircleClose, Coin,
+  ArrowDown, ArrowLeft, Aim, Bell, Box, CircleCheck, CircleClose, Coin,
   DataAnalysis, DataLine, Delete, Document, Expand, Folder,
   FullScreen, Link, Location, Lock, Monitor, Refresh,
   RefreshRight, Search, SwitchButton, Top, Upload,
@@ -40,7 +40,7 @@ app.use(ElementPlus)     // UI 组件库
 
 // 将图标注册为全局组件，使模板中可直接使用 <IconName /> 语法
 const icons = {
-  ArrowDown, ArrowLeft, Aim, Box, CircleCheck, CircleClose, Coin,
+  ArrowDown, ArrowLeft, Aim, Bell, Box, CircleCheck, CircleClose, Coin,
   DataAnalysis, DataLine, Delete, Document, Expand, Folder,
   FullScreen, Link, Location, Lock, Monitor, Refresh,
   RefreshRight, Search, SwitchButton, Top, Upload,

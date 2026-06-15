@@ -3,6 +3,7 @@ package com.dockermanager.infrastructure.adapter.web;
 import com.dockermanager.domain.dto.DockerHostDTO;
 import com.dockermanager.domain.dto.HostMetricsDTO;
 import com.dockermanager.domain.port.inbound.HostOperationPort;
+import com.dockermanager.domain.util.ParamValidator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -26,12 +27,23 @@ public class HostController {
     @PostMapping
     public ResponseEntity<DockerHostDTO> addHost(@RequestBody Map<String, Object> body) {
         try {
+            String name = ParamValidator.getStringOrDefault(body, "name", null);
+            String connectionType = ParamValidator.getStringOrDefault(body, "connectionType", "SOCKET");
+            String connectionUrl = ParamValidator.getStringOrDefault(body, "connectionUrl", null);
+            String certPath = ParamValidator.getStringOrDefault(body, "certPath", null);
+            
+            ParamValidator.requireNotBlank(name, "主机名称不能为空");
+            ParamValidator.requireMaxLength(name, 100, "主机名称最长100个字符");
+            if (!"SOCKET".equals(connectionType) && !"TCP".equals(connectionType)) {
+                throw new IllegalArgumentException("连接类型必须是 SOCKET 或 TCP");
+            }
+            ParamValidator.requireNotBlank(connectionUrl, "连接地址不能为空");
+            ParamValidator.requireMaxLength(connectionUrl, 500, "连接地址最长500个字符");
+            ParamValidator.requireMaxLength(certPath, 500, "证书路径最长500个字符");
+            
             DockerHostDTO dto = hostOperationPort.addHost(
-                    (String) body.get("name"),
-                    (String) body.getOrDefault("connectionType", "SOCKET"),
-                    (String) body.get("connectionUrl"),
-                    Boolean.TRUE.equals(body.get("tlsEnabled")),
-                    (String) body.get("certPath"));
+                    name, connectionType, connectionUrl,
+                    Boolean.TRUE.equals(body.get("tlsEnabled")), certPath);
             return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(null);
@@ -41,12 +53,23 @@ public class HostController {
     @PutMapping("/{id}")
     public ResponseEntity<DockerHostDTO> updateHost(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         try {
+            String name = ParamValidator.getStringOrDefault(body, "name", null);
+            String connectionType = ParamValidator.getStringOrDefault(body, "connectionType", "SOCKET");
+            String connectionUrl = ParamValidator.getStringOrDefault(body, "connectionUrl", null);
+            String certPath = ParamValidator.getStringOrDefault(body, "certPath", null);
+            
+            ParamValidator.requireNotBlank(name, "主机名称不能为空");
+            ParamValidator.requireMaxLength(name, 100, "主机名称最长100个字符");
+            if (!"SOCKET".equals(connectionType) && !"TCP".equals(connectionType)) {
+                throw new IllegalArgumentException("连接类型必须是 SOCKET 或 TCP");
+            }
+            ParamValidator.requireNotBlank(connectionUrl, "连接地址不能为空");
+            ParamValidator.requireMaxLength(connectionUrl, 500, "连接地址最长500个字符");
+            ParamValidator.requireMaxLength(certPath, 500, "证书路径最长500个字符");
+            
             DockerHostDTO dto = hostOperationPort.updateHost(id,
-                    (String) body.get("name"),
-                    (String) body.getOrDefault("connectionType", "SOCKET"),
-                    (String) body.get("connectionUrl"),
-                    Boolean.TRUE.equals(body.get("tlsEnabled")),
-                    (String) body.get("certPath"),
+                    name, connectionType, connectionUrl,
+                    Boolean.TRUE.equals(body.get("tlsEnabled")), certPath,
                     !Boolean.FALSE.equals(body.get("enabled")));
             return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {

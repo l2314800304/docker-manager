@@ -2,6 +2,7 @@ package com.dockermanager.infrastructure.adapter.web;
 
 import com.dockermanager.domain.dto.ContainerInfoDTO;
 import com.dockermanager.domain.port.inbound.DockerOperationPort;
+import com.dockermanager.domain.util.ParamValidator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class ContainerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ContainerInfoDTO> getContainer(@PathVariable String id) {
+        ParamValidator.requireContainerId(id, "无效的容器ID");
         return dockerOperationPort.getContainer(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -32,12 +34,14 @@ public class ContainerController {
 
     @GetMapping("/{id}/inspect")
     public ResponseEntity<Map<String, Object>> inspectContainer(@PathVariable String id) {
+        ParamValidator.requireContainerId(id, "无效的容器ID");
         try { return ResponseEntity.ok(dockerOperationPort.inspectContainer(id)); }
         catch (Exception e) { return ResponseEntity.notFound().build(); }
     }
 
     @PostMapping("/{id}/restart")
     public ResponseEntity<Map<String, Object>> restartContainer(@PathVariable String id) {
+        ParamValidator.requireContainerId(id, "无效的容器ID");
         try {
             dockerOperationPort.restartContainer(id);
             return ResponseEntity.ok(Map.of("success", true, "message", "Container restarting"));
@@ -48,6 +52,7 @@ public class ContainerController {
 
     @PostMapping("/{id}/stop")
     public ResponseEntity<Map<String, Object>> stopContainer(@PathVariable String id) {
+        ParamValidator.requireContainerId(id, "无效的容器ID");
         try {
             dockerOperationPort.stopContainer(id);
             return ResponseEntity.ok(Map.of("success", true, "message", "Container stopping"));
@@ -58,6 +63,7 @@ public class ContainerController {
 
     @PostMapping("/{id}/start")
     public ResponseEntity<Map<String, Object>> startContainer(@PathVariable String id) {
+        ParamValidator.requireContainerId(id, "无效的容器ID");
         try {
             dockerOperationPort.startContainer(id);
             return ResponseEntity.ok(Map.of("success", true, "message", "Container starting"));

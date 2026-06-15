@@ -5,6 +5,7 @@ import com.dockermanager.application.port.outbound.PasswordEncoderPort;
 import com.dockermanager.application.port.outbound.UserRepositoryPort;
 import com.dockermanager.domain.entity.User;
 import com.dockermanager.domain.port.inbound.AuthenticationPort;
+import com.dockermanager.domain.util.ParamValidator;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,6 +33,8 @@ public class AuthAppService implements AuthenticationPort {
 
     @Override
     public Map<String, Object> register(String username, String password, String nickname) {
+        ParamValidator.requireLength(username, 3, 50, "用户名长度需在3-50之间");
+        ParamValidator.requireMinLength(password, 6, "密码至少6位");
         if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("用户名已存在");
         }
@@ -77,6 +80,8 @@ public class AuthAppService implements AuthenticationPort {
 
     @Override
     public void changePassword(String username, String oldPassword, String newPassword) {
+        ParamValidator.requireNotBlank(oldPassword, "请输入原密码");
+        ParamValidator.requireMinLength(newPassword, 6, "新密码至少6位");
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {

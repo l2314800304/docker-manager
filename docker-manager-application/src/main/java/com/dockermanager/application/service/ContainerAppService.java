@@ -8,6 +8,7 @@ import com.dockermanager.domain.entity.AuditLog;
 import com.dockermanager.domain.entity.StatusRecord;
 import com.dockermanager.domain.enums.AuditAction;
 import com.dockermanager.domain.port.inbound.DockerOperationPort;
+import com.dockermanager.domain.util.ParamValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -38,6 +39,7 @@ public class ContainerAppService implements DockerOperationPort {
 
     @Override
     public Optional<ContainerInfoDTO> getContainer(String containerId) {
+        ParamValidator.requireNotBlank(containerId, "容器ID不能为空");
         return dockerAdapter.listAllContainerDTOs().stream()
                 .filter(c -> c.getContainerId().equals(containerId) || c.getContainerId().startsWith(containerId))
                 .findFirst();
@@ -50,6 +52,7 @@ public class ContainerAppService implements DockerOperationPort {
 
     @Override
     public void restartContainer(String containerId) {
+        ParamValidator.requireNotBlank(containerId, "容器ID不能为空");
         ContainerInfoDTO info = getContainer(containerId).orElse(null);
         String oldState = info != null ? info.getState().name() : "UNKNOWN";
 
@@ -61,6 +64,7 @@ public class ContainerAppService implements DockerOperationPort {
 
     @Override
     public void stopContainer(String containerId) {
+        ParamValidator.requireNotBlank(containerId, "容器ID不能为空");
         ContainerInfoDTO info = getContainer(containerId).orElse(null);
         String oldState = info != null ? info.getState().name() : "UNKNOWN";
 
@@ -72,6 +76,7 @@ public class ContainerAppService implements DockerOperationPort {
 
     @Override
     public void startContainer(String containerId) {
+        ParamValidator.requireNotBlank(containerId, "容器ID不能为空");
         ContainerInfoDTO info = getContainer(containerId).orElse(null);
         String oldState = info != null ? info.getState().name() : "UNKNOWN";
 
@@ -114,16 +119,23 @@ public class ContainerAppService implements DockerOperationPort {
 
     @Override
     public List<FileEntryDTO> listDirectory(String containerId, String path) {
+        ParamValidator.requireNotBlank(containerId, "容器ID不能为空");
+        ParamValidator.requireSafePath(path, "非法的文件路径");
         return dockerAdapter.listDirectory(containerId, path);
     }
 
     @Override
     public String readFile(String containerId, String filePath) {
+        ParamValidator.requireNotBlank(containerId, "容器ID不能为空");
+        ParamValidator.requireSafePath(filePath, "非法的文件路径");
         return dockerAdapter.readFile(containerId, filePath);
     }
 
     @Override
     public String updateServiceImage(String projectName, String serviceName, ImageUpdateRequest request) {
+        ParamValidator.requireNotBlank(projectName, "项目名不能为空");
+        ParamValidator.requireNotBlank(serviceName, "服务名不能为空");
+        ParamValidator.requireNotNull(request, "请求不能为空");
         String image = request.getImage() != null ? request.getImage() : serviceName;
         String newTag = request.getNewTag() != null ? request.getNewTag() : "latest";
 

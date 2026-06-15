@@ -6,6 +6,7 @@ import com.dockermanager.domain.dto.DockerHostDTO;
 import com.dockermanager.domain.dto.HostMetricsDTO;
 import com.dockermanager.domain.entity.DockerHost;
 import com.dockermanager.domain.port.inbound.HostOperationPort;
+import com.dockermanager.domain.util.ParamValidator;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,12 @@ public class HostAppService implements HostOperationPort {
     @Override
     public DockerHostDTO addHost(String name, String connectionType, String connectionUrl,
                                   boolean tlsEnabled, String certPath) {
+        ParamValidator.requireLength(name, 3, 100, "主机名称长度需在3-100之间");
+        if (!"SOCKET".equals(connectionType) && !"TCP".equals(connectionType)) {
+            throw new IllegalArgumentException("连接类型必须是 SOCKET 或 TCP");
+        }
+        ParamValidator.requireLength(connectionUrl, 5, 500, "连接地址长度需在5-500之间");
+        
         DockerHost host = DockerHost.builder()
                 .name(name).connectionType(connectionType).connectionUrl(connectionUrl)
                 .tlsEnabled(tlsEnabled).certPath(certPath).enabled(true).status("UNKNOWN").build();
@@ -50,6 +57,12 @@ public class HostAppService implements HostOperationPort {
     @Override
     public DockerHostDTO updateHost(Long hostId, String name, String connectionType,
                                      String connectionUrl, boolean tlsEnabled, String certPath, boolean enabled) {
+        ParamValidator.requireLength(name, 3, 100, "主机名称长度需在3-100之间");
+        if (!"SOCKET".equals(connectionType) && !"TCP".equals(connectionType)) {
+            throw new IllegalArgumentException("连接类型必须是 SOCKET 或 TCP");
+        }
+        ParamValidator.requireLength(connectionUrl, 5, 500, "连接地址长度需在5-500之间");
+        
         DockerHost host = hostRepository.findById(hostId)
                 .orElseThrow(() -> new IllegalArgumentException("宿主机不存在"));
         host.setName(name);

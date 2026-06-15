@@ -6,7 +6,10 @@ import com.dockermanager.domain.dto.AlertRecordDTO;
 import com.dockermanager.domain.dto.AlertRuleDTO;
 import com.dockermanager.domain.entity.AlertRecord;
 import com.dockermanager.domain.entity.AlertRule;
+import com.dockermanager.domain.enums.AlertMetricType;
+import com.dockermanager.domain.enums.CompareOperator;
 import com.dockermanager.domain.port.inbound.AlertManagementPort;
+import com.dockermanager.domain.util.ParamValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,6 +39,16 @@ public class AlertAppService implements AlertManagementPort {
     public AlertRuleDTO addRule(String name, Long hostId, String metricType, double threshold,
                                  String compareOperator, int durationSeconds, String notifyType,
                                  String notifyTarget, String dingtalkSecret, int cooldownSeconds) {
+        ParamValidator.requireLength(name, 1, 100, "规则名称长度需在1-100之间");
+        ParamValidator.requireEnumValue(metricType, AlertMetricType.class, "无效的指标类型");
+        ParamValidator.requireInRange(threshold, 0.0, 100.0, "阈值必须在0-100之间");
+        ParamValidator.requireEnumValue(compareOperator, CompareOperator.class, "无效的比较操作符");
+        if (!"DINGTALK".equals(notifyType)) {
+            throw new IllegalArgumentException("通知类型必须是 DINGTALK");
+        }
+        ParamValidator.requireNotBlank(notifyTarget, "通知目标不能为空");
+        ParamValidator.requireMaxLength(notifyTarget, 500, "通知目标最长500个字符");
+        
         AlertRule rule = AlertRule.builder()
                 .name(name).hostId(hostId).metricType(metricType).threshold(threshold)
                 .compareOperator(compareOperator).durationSeconds(durationSeconds)
@@ -49,6 +62,16 @@ public class AlertAppService implements AlertManagementPort {
                                     double threshold, String compareOperator, int durationSeconds,
                                     String notifyType, String notifyTarget, String dingtalkSecret,
                                     boolean enabled, int cooldownSeconds) {
+        ParamValidator.requireLength(name, 1, 100, "规则名称长度需在1-100之间");
+        ParamValidator.requireEnumValue(metricType, AlertMetricType.class, "无效的指标类型");
+        ParamValidator.requireInRange(threshold, 0.0, 100.0, "阈值必须在0-100之间");
+        ParamValidator.requireEnumValue(compareOperator, CompareOperator.class, "无效的比较操作符");
+        if (!"DINGTALK".equals(notifyType)) {
+            throw new IllegalArgumentException("通知类型必须是 DINGTALK");
+        }
+        ParamValidator.requireNotBlank(notifyTarget, "通知目标不能为空");
+        ParamValidator.requireMaxLength(notifyTarget, 500, "通知目标最长500个字符");
+        
         AlertRule rule = alertRepository.findRuleById(ruleId)
                 .orElseThrow(() -> new IllegalArgumentException("告警规则不存在"));
         rule.setName(name); rule.setHostId(hostId); rule.setMetricType(metricType);
@@ -76,6 +99,7 @@ public class AlertAppService implements AlertManagementPort {
 
     @Override
     public String testNotification(String notifyType, String notifyTarget, String dingtalkSecret) {
+        ParamValidator.requireNotBlank(notifyTarget, "通知目标不能为空");
         return notificationPort.sendNotification(notifyType, notifyTarget, dingtalkSecret,
                 "Docker Manager 测试通知", "## ✅ 通知测试成功\n\n这是一条来自 Docker Manager 的测试消息。\n\n> 如果您收到此消息，说明 WebHook 配置正确。");
     }

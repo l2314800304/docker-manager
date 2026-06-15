@@ -2,6 +2,7 @@ package com.dockermanager.infrastructure.adapter.web;
 
 import com.dockermanager.domain.dto.ContainerStatsDTO;
 import com.dockermanager.domain.port.inbound.DockerOperationPort;
+import com.dockermanager.domain.util.ParamValidator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ public class StatsController {
 
     @GetMapping("/containers/{id}/stats")
     public ResponseEntity<ContainerStatsDTO> getStats(@PathVariable String id) {
+        ParamValidator.requireContainerId(id, "无效的容器ID");
         ContainerStatsDTO stats = dockerOperationPort.getStatsSnapshot(id);
         if (stats == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(stats);
